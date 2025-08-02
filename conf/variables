@@ -1,0 +1,31 @@
+#Este archivo contiene las variables necesarias para desplegar una nueva instancia de WordPress
+#Definir la variables para deplegar el nuevo sitio
+
+#URL que permite acceder al sitio
+DOMAIN="newsite.com"
+
+#Datos para la creacion de una nueva base de datos dentro de MariaDB
+DB_NAME="wpdatabase"
+
+DB_ADMIN_USER="dbadmin"
+DB_ADMIN_PASS="random125!"
+
+MariaDB_ROOT_PASS="random123!"
+
+
+#Directorio donde se ubicaran los archivos de WordPress correspondientes a la instancia
+WEB_ROOT="/var/www/html/$DOMAIN"
+
+#Nombres de los certificados SSL
+SSL_CERTIFICATE_NAME="newsite.com.crt" 
+SSL_CERTIFICATE_KEY_NAME="newsite.com.key" 
+
+
+################################################################
+#         NO EDITAR LAS VARIABLES QUE SIGUEN                   #
+################################################################
+installation_dir=$(dirname "`readlink -f $0`")
+
+#VALIDAR QUE LOS CERTIFICADOS SE ENCUENTREN EN EL DIRECTORIO
+SSL_CERTIFICATE="$installation_dir/certificados/$SSL_CERTIFICATE_NAME" 
+SSL_CERTIFICATE_KEY="$installation_dir/certificados/$SSL_CERTIFICATE_KEY_NAME" 

@@ -1,0 +1,51 @@
+server {
+    server_name DOMAIN www.DOMAIN;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+
+    root /var/www/html/DOMAIN;
+    index index.php;
+
+    #Saves client request body into files, cleaning up afterwards
+    client_body_in_file_only clean;
+    client_body_buffer_size 32K;
+
+    #Allow uploaded files up to 300 megabytes
+    client_max_body_size 300M;
+
+    #Close connection if connection is inactive after 10s
+    send_timeout 10s;
+
+    #Static files
+    #(ogv|svg|svgz|eot|otf|woff|mp4|ttf|css|rss|atom|js|jpg|jpeg|gif|png|ico|zip|tgz|gz|rar|bz2|doc|xls|exe|ppt|tar|bmp|rtf)$ 
+    location ~* ^.+\.(pdf|avif|jpg|jpeg|png|gif|ico|css|js)$ {
+        access_log off;
+        expires max;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+?\.php)(/.*)$;
+        fastcgi_pass unix:/run/php-fpm/www.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+    
+    location ~ /\.ht {
+        deny all;
+    }
+
+    ssl_protocols TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache builtin:1000 shared:SSL:10m;
+    ssl_session_tickets on;
+    ssl_certificate /etc/nginx/keys/CERTIFICATE;
+    ssl_certificate_key /etc/nginx/keys/KEY;
+}
+
