@@ -1,13 +1,17 @@
 #!/bin/bash
 
-mkdir $WEB_ROOT 
+mkdir -p "$WEB_ROOT"
+
 TEMPDIR=$(mktemp -d)
-cd $TEMPDIR
+cd "$TEMPDIR" || exit 1
 wget https://wordpress.org/latest.zip
-unzip latest.zip
-mv wordpress/* $WEB_ROOT
+unzip -q latest.zip
+mv wordpress/* "$WEB_ROOT"
+
 rm -rf "${TEMPDIR}"
 
+# Generate salts
+SALTS=$(curl -s https://api.wordpress.org/secret-key/1.1/salt/)
 
     cat > "$WEB_ROOT/wp-config.php" <<WP_CONFIG
 <?php
@@ -41,7 +45,7 @@ define( 'DB_USER', '$DB_ADMIN_USER' );
 define( 'DB_PASSWORD', '$DB_ADMIN_PASS' );
 
 /** Database hostname */
-define( 'DB_HOST', 'localhost:var/lib/mysql/mysql.sock' );
+define( 'DB_HOST', 'localhost:/var/lib/mysql/mysql.sock' );
 
 /** Database charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8mb4' );
@@ -60,14 +64,8 @@ define( 'DB_COLLATE', 'utf8mb4_unicode_ci' );
  *
  * @since 2.6.0
  */
-define( 'AUTH_KEY',         '$(head /dev/urandom | tr -dc 'A-Za-z0-9~>`?[{}]!@#$%^&*()_+-=|<' | head -c 64)' );
-define( 'SECURE_AUTH_KEY',  '$(head /dev/urandom | tr -dc 'A-Za-z0-9~>`?[{}]!@#$%^&*()_+-=|<' | head -c 64)' );
-define( 'LOGGED_IN_KEY',    '$(head /dev/urandom | tr -dc 'A-Za-z0-9~>`?[{}]!@#$%^&*()_+-=|<' | head -c 64)' );
-define( 'NONCE_KEY',        '$(head /dev/urandom | tr -dc 'A-Za-z0-9~>`?[{}]!@#$%^&*()_+-=|<' | head -c 64)' );
-define( 'AUTH_SALT',        '$(head /dev/urandom | tr -dc 'A-Za-z0-9~>`?[{}]!@#$%^&*()_+-=|<' | head -c 64)' );
-define( 'SECURE_AUTH_SALT', '$(head /dev/urandom | tr -dc 'A-Za-z0-9~>`?[{}]!@#$%^&*()_+-=|<' | head -c 64)' );
-define( 'LOGGED_IN_SALT',   '$(head /dev/urandom | tr -dc 'A-Za-z0-9~>`?[{}]!@#$%^&*()_+-=|<' | head -c 64)' );
-define( 'NONCE_SALT',       '$(head /dev/urandom | tr -dc 'A-Za-z0-9~>`?[{}]!@#$%^&*()_+-=|<' | head -c 64)' );
+
+$SALTS
 
 /**#@-*/
 
@@ -122,19 +120,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once ABSPATH . 'wp-settings.php';
 WP_CONFIG
 
+chown -R nginx:nginx "$WEB_ROOT"
 
-#Give nginx permissions to read over worpress files
-chown -R nginx:nginx $WEB_ROOT
-
+# Apply SELinux permissions
 setsebool -P httpd_can_network_connect 1
-semanage fcontext -a -t httpd_sys_rw_content_t "$WEB_ROOT(/.*)?"
-restorecon -Rv $WEB_ROOT
+semanage fcontext -a -t httpd_sys_rw_content_t "$WEB_ROOT(/.*)?" 
+restorecon -R "$WEB_ROOT"
 
 CRON_TASK="*/10 * * * * /usr/bin/php $WEB_ROOT/wp-cron.php > /dev/null 2>&1"
-(crontab -l 2> /dev/null; echo "$CRON_TASK") | crontab -
+(crontab -u nginx -l 2> /dev/null; echo "$CRON_TASK") | crontab -u nginx -
 
-
-
-
-
+echo "[✔] WordPress instalado en: $WEB_ROOT"
 

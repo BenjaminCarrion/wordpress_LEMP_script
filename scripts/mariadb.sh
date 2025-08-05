@@ -1,15 +1,19 @@
-#!/bin/bash 
-#
+#!/bin/bash
 
-if ! systemctl is-active --quiet mariadb.service;
-then
-    instalar mariadb-server 
+section "Configurando MariaDB"
+
+# --- Instalación y configuración inicial ---
+if ! systemctl is-active --quiet mariadb.service; then
+    echo -e "${CINFO} MariaDB no está activo. Iniciando instalación...${CEND}"
+
+    instalar mariadb-server
+
     sed -i '/^\[mariadb\]/a skip-networking\nperformance_schema = 0' /etc/my.cnf.d/mariadb-server.cnf
-    #skip-name-resolve could give a little improvement
 
     systemctl enable --now mariadb
-
     sleep 5
+
+    echo -e "${CINFO} Aplicando configuración de seguridad inicial...${CEND}"
 
     mariadb -u root <<EOF
         # Update the root password for all hosts
@@ -28,23 +32,24 @@ then
         # Reload privilege tables
         FLUSH PRIVILEGES;
 EOF
-
-echo "MariaDB secure installation complete."
+    echo -e "${CSUCCESS} Configuración de seguridad completada.${CEND}"
 fi
 
-#REVISAR SI LA BASE DE DATOS YA SE ENCUENTRA CREADA
-RESULT=`mariadb -u root -p$MariaDB_ROOT_PASS -e "SHOW DATABASES" | grep $DB_NAME`
+# --- Creación de base de datos y usuario ---
+echo -e "${CINFO} Verificando si la base de datos ${DB_NAME} existe...${CEND}"
+RESULT=$(mariadb -u root -p"$MariaDB_ROOT_PASS" -e "SHOW DATABASES LIKE '$DB_NAME';" | grep "$DB_NAME")
 
-if [ "$RESULT" == "$DB_NAME" ]; then
-    echo "${CFAILURE}La base de datos ya existe terminando la ejecución del script$CEND"
-    exit 0;
+if [[ "$RESULT" == "$DB_NAME" ]]; then
+    echo -e "${CWARNING} La base de datos ${DB_NAME} ya existe. Terminando ejecución.${CEND}"
+    exit 0
 else
-    echo "Creando base de datos"
-
-    mariadb -u root -p$MariaDB_ROOT_PASS -e "CREATE DATABASE IF NOT EXISTS $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-    CREATE USER IF NOT EXISTS '$DB_ADMIN_USER'@'localhost' IDENTIFIED BY '$DB_ADMIN_PASS';
-    GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_ADMIN_USER'@'localhost';
-    FLUSH PRIVILEGES;" 
+    echo -e "${CINFO} Creando base de datos y usuario...${CEND}"
+    mariadb -u root -p"$MariaDB_ROOT_PASS" <<EOF
+        CREATE DATABASE IF NOT EXISTS $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+        CREATE USER IF NOT EXISTS '$DB_ADMIN_USER'@'localhost' IDENTIFIED BY '$DB_ADMIN_PASS';
+        GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_ADMIN_USER'@'localhost';
+        FLUSH PRIVILEGES;
+EOF
+    echo -e "${CSUCCESS} Base de datos ${DB_NAME} creada exitosamente con su usuario.${CEND}"
 fi
-
 

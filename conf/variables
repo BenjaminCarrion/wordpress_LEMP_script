@@ -2,7 +2,7 @@
 #Definir la variables para deplegar el nuevo sitio
 
 #URL que permite acceder al sitio
-DOMAIN="newsite.com"
+DOMAIN="www.labsite.com"
 
 #Datos para la creacion de una nueva base de datos dentro de MariaDB
 DB_NAME="wpdatabase"
@@ -17,8 +17,8 @@ MariaDB_ROOT_PASS="random123!"
 WEB_ROOT="/var/www/html/$DOMAIN"
 
 #Nombres de los certificados SSL
-SSL_CERTIFICATE_NAME="newsite.com.crt" 
-SSL_CERTIFICATE_KEY_NAME="newsite.com.key" 
+SSL_CERTIFICATE_NAME="labsite.com.crt" 
+SSL_CERTIFICATE_KEY_NAME="labsite.com.key" 
 
 
 ################################################################

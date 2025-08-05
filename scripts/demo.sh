@@ -48,4 +48,3 @@ if ! systemctl is-active --quiet php-fpm.service; then
     echo -e "${CSUCCESS} PHP-FPM instalado y ejecutándose.${CEND}"
 fi
 
-
