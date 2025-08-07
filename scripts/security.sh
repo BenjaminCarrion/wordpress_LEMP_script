@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # --- Configuración de firewall ---
-echo -e "${CMSG}Configurando firewalld...${CEND}"
+section "Configurando firewalld..."
 
 # Asegurar que los servicios HTTP y HTTPS estén habilitados
 for svc in http https; do
@@ -16,4 +16,6 @@ done
 # Aplicar los cambios
 firewall-cmd --reload &> /dev/null
 echo -e "${CSUCCESS}Reglas de firewall actualizadas correctamente.${CEND}"
+
+systemctl restart nginx
 

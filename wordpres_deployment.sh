@@ -13,6 +13,9 @@ printf "
 
 "
 
+# Check if user is root
+[ $(id -u) != "0" ] && { echo -e "${CWARNING} Error: Necesita ejecutar este script con permisos root${CEND}"; exit 1; }
+
 
 # --- Función para instalación de paquetes ---
 instalar() {
