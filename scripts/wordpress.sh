@@ -1,5 +1,7 @@
 #!/bin/bash
 
+section "Desplegando WordPress"
+
 mkdir -p "$WEB_ROOT"
 
 TEMPDIR=$(mktemp -d)
@@ -8,6 +10,7 @@ wget https://wordpress.org/latest.zip
 unzip -q latest.zip
 mv wordpress/* "$WEB_ROOT"
 
+cd "$installation_dir"
 rm -rf "${TEMPDIR}"
 
 # Generate salts
