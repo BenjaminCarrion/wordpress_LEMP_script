@@ -37,7 +37,8 @@ fi
 
 # --- Creación de base de datos y usuario ---
 echo -e "${CINFO} Verificando si la base de datos ${DB_NAME} existe...${CEND}"
-RESULT=$(mariadb -u root -p"$MariaDB_ROOT_PASS" -e "SHOW DATABASES LIKE '$DB_NAME';" | grep "$DB_NAME")
+RESULT=$(mariadb -u root -p"$MariaDB_ROOT_PASS" -e "SHOW DATABASES;" | grep "$DB_NAME")
+
 
 if [[ "$RESULT" == "$DB_NAME" ]]; then
     echo -e "${CWARNING} La base de datos ${DB_NAME} ya existe. Terminando ejecución.${CEND}"
